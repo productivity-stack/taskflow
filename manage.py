@@ -6,7 +6,25 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'taskflow.settings')
+    # Get DJANGO_ENV or default to 'local'
+    env = os.environ.setdefault("DJANGO_ENV", "local")
+
+    # Map environments to their respective settings
+    settings_module = {
+        "local": "taskflow.settings.local",
+        "test": "taskflow.settings.test",
+        "staging": "taskflow.settings.staging",
+        "production": "taskflow.settings.production",
+    }.get(env)
+
+    # Raise error if DJANGO_ENV is invalid
+    if settings_module is None:
+        raise ValueError(
+            f"Invalid DJANGO_ENV value: {env}. Must be 'production' or 'local'."
+        )
+
+    # Set the appropriate settings module
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -18,5 +36,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
