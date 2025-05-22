@@ -28,10 +28,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/local.txt
 
-      - name: Run migrations and tests
+      - name: Run tests
         env:
           DJANGO_SETTINGS_MODULE: taskflow.settings.test
         run: |
-          python manage.py migrate --noinput
-          python manage.py collectstatic --noinput --verbosity 0
           pytest
