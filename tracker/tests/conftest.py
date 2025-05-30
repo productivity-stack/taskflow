@@ -1,6 +1,12 @@
 import pytest
 from django.utils import timezone
+from rest_framework.test import APIClient
 from tracker.models import Task, TaskStatus
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
 
 
 @pytest.fixture
