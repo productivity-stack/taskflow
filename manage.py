@@ -12,7 +12,6 @@ def main():
     # Map environments to their respective settings
     settings_module = {
         "local": "taskflow.settings.local",
-        "test": "taskflow.settings.test",
         "staging": "taskflow.settings.staging",
         "production": "taskflow.settings.production",
     }.get(env)
