@@ -51,7 +51,7 @@ class Task(models.Model):
         default=TaskPriority.MEDIUM,
     )
 
-    due_date = models.DateTimeField(null=True, blank=True)
+    due_date = models.DateTimeField(null=False, blank=False)
     reminder_at = models.DateTimeField(null=True, blank=True)
 
     epic = models.ForeignKey(

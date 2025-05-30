@@ -8,23 +8,6 @@ class EpicSerializer(serializers.ModelSerializer):
         model = Epic
         fields = "__all__"
 
-    def validate_status(self, new_status):
-        instance = self.instance
-        if instance:
-            prev_status = instance.status
-
-            if (
-                prev_status in [TaskStatus.DONE, TaskStatus.CLOSED]
-                and new_status != prev_status
-            ):
-                raise serializers.ValidationError(
-                    "Cannot change status of a completed epic."
-                )
-
-            if prev_status == TaskStatus.TEST and new_status == TaskStatus.TODO:
-                raise serializers.ValidationError("Cannot move epic from test to todo.")
-        return new_status
-
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,17 +19,27 @@ class TaskSerializer(serializers.ModelSerializer):
         if instance:
             prev_status = instance.status
 
-            if (
-                prev_status in [TaskStatus.DONE, TaskStatus.CLOSED]
-                and new_status != prev_status
-            ):
+            if prev_status == TaskStatus.CLOSED and new_status != prev_status:
                 raise serializers.ValidationError(
-                    "Cannot change status of a completed task."
+                    "Cannot change status of a closed task."
                 )
 
-            if prev_status == TaskStatus.TEST and new_status == TaskStatus.TODO:
-                raise serializers.ValidationError("Cannot move task from test to todo.")
+            if prev_status == TaskStatus.DONE and new_status not in [
+                TaskStatus.DONE,
+                TaskStatus.CLOSED,
+            ]:
+                raise serializers.ValidationError(
+                    "Cannot revert from done to a previous status."
+                )
+
         return new_status
+
+    def validate_due_date(self, due_date):
+        if due_date and due_date < timezone.now() + timezone.timedelta(minutes=30):
+            raise serializers.ValidationError(
+                "Due date must be at least 30 minutes in the future."
+            )
+        return due_date
 
     def validate(self, data):
         instance = self.instance
@@ -56,13 +49,16 @@ class TaskSerializer(serializers.ModelSerializer):
             instance.reminder_at if instance else None
         )
 
-        if (
-            reminder_at
-            and due_date
-            and reminder_at >= due_date - timezone.timedelta(minutes=30)
-        ):
-            raise serializers.ValidationError(
-                {"reminder_at": "Reminder must be at least 30 minutes before due date."}
-            )
+        if reminder_at:
+            if reminder_at < timezone.now():
+                raise serializers.ValidationError(
+                    {"reminder_at": "Reminder must be in the future."}
+                )
+            if due_date and reminder_at > due_date - timezone.timedelta(minutes=30):
+                raise serializers.ValidationError(
+                    {
+                        "reminder_at": "Reminder must be at least 30 minutes before due date."
+                    }
+                )
 
         return data
