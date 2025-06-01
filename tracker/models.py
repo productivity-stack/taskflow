@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.conf import settings
 
 
 class Epic(models.Model):
@@ -60,6 +61,17 @@ class Task(models.Model):
         null=True,
         blank=True,
         related_name="tasks",
+    )
+
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="created_tasks",
+    )
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="assigned_tasks",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
