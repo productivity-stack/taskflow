@@ -14,7 +14,7 @@ def check_reminders():
             subject="Task Reminder",
             body="tracker/email/reminder.html",
             context={"task": task},
-            recipient_list=["shr.farahzad@gmail.com"],
+            recipient_list=[task.assignee.email],
         )
         task.reminder_at = None
         task.save(update_fields=["reminder_at"])

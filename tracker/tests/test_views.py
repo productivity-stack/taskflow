@@ -18,12 +18,14 @@ from tracker.models import TaskStatus
     ],
 )
 def test_forbidden_status_transitions_view(
-    api_client, task_status_objects, from_status, to_status
+    authenticated_api_client, task_status_objects, from_status, to_status
 ):
     task = task_status_objects[from_status]
     url = reverse("task-detail", kwargs={"pk": task.pk})
 
-    response = api_client.patch(url, data={"status": to_status}, format="json")
+    response = authenticated_api_client.patch(
+        url, data={"status": to_status}, format="json"
+    )
     assert response.status_code == 400
     assert "status" in response.json()
 
@@ -48,12 +50,14 @@ def test_forbidden_status_transitions_view(
     ],
 )
 def test_allowed_status_transitions_view(
-    api_client, task_status_objects, from_status, to_status
+    authenticated_api_client, task_status_objects, from_status, to_status
 ):
     task = task_status_objects[from_status]
     url = reverse("task-detail", kwargs={"pk": task.pk})
 
-    response = api_client.patch(url, data={"status": to_status}, format="json")
+    response = authenticated_api_client.patch(
+        url, data={"status": to_status}, format="json"
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == to_status
@@ -69,7 +73,9 @@ def test_allowed_status_transitions_view(
         (60, True),
     ],
 )
-def test_due_date_validation_view(api_client, minutes_from_now, should_be_valid):
+def test_due_date_validation_view(
+    authenticated_api_client, user, another_user, minutes_from_now, should_be_valid
+):
     due_date = (
         timezone.now() + timezone.timedelta(minutes=minutes_from_now)
     ).isoformat()
@@ -79,8 +85,10 @@ def test_due_date_validation_view(api_client, minutes_from_now, should_be_valid)
         "title": "New Task",
         "status": TaskStatus.TODO,
         "due_date": due_date,
+        "creator": user.id,
+        "assignee": another_user.id,
     }
-    response = api_client.post(url, data=data, format="json")
+    response = authenticated_api_client.post(url, data=data, format="json")
 
     if should_be_valid:
         assert response.status_code in (200, 201)
@@ -99,7 +107,9 @@ def test_due_date_validation_view(api_client, minutes_from_now, should_be_valid)
         (41, False),
     ],
 )
-def test_reminder_time_validation_view(api_client, minutes_before_due, should_be_valid):
+def test_reminder_time_validation_view(
+    authenticated_api_client, user, another_user, minutes_before_due, should_be_valid
+):
     due_date = timezone.now() + timezone.timedelta(minutes=40)
     reminder_at = due_date - timezone.timedelta(minutes=minutes_before_due)
     due_date_str = due_date.isoformat()
@@ -112,8 +122,10 @@ def test_reminder_time_validation_view(api_client, minutes_before_due, should_be
         "status": TaskStatus.TODO,
         "due_date": due_date_str,
         "reminder_at": reminder_str,
+        "creator": user.id,
+        "assignee": another_user.id,
     }
-    response = api_client.post(url, data=data, format="json")
+    response = authenticated_api_client.post(url, data=data, format="json")
 
     if should_be_valid:
         assert response.status_code in (200, 201)
@@ -123,15 +135,17 @@ def test_reminder_time_validation_view(api_client, minutes_before_due, should_be
 
 
 @pytest.mark.django_db
-def test_due_date_is_required_view(api_client):
+def test_due_date_is_required_view(authenticated_api_client, user, another_user):
     url = reverse("task-list")
 
     data = {
         "title": "Task without due date",
         "status": TaskStatus.TODO,
+        "creator": user.id,
+        "assignee": another_user.id,
     }
 
-    response = api_client.post(url, data=data, format="json")
+    response = authenticated_api_client.post(url, data=data, format="json")
 
     assert response.status_code == 400
     assert "due_date" in response.json()

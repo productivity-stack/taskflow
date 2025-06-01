@@ -54,6 +54,7 @@ def test_allowed_task_status_transitions(task_status_objects, from_status, to_st
         serializer.is_valid()
     ), f"Transition from {from_status} to {to_status} should be valid"
     serializer.save()
+    task.refresh_from_db()
     assert task.status == to_status
 
 
@@ -63,17 +64,18 @@ def test_allowed_task_status_transitions(task_status_objects, from_status, to_st
     [
         (-10, False),
         (10, False),
-        # (30, True),
         (35, True),
         (60, True),
     ],
 )
-def test_due_date_validation(minutes_from_now, should_be_valid):
+def test_due_date_validation(user, another_user, minutes_from_now, should_be_valid):
     due_date = timezone.now() + timezone.timedelta(minutes=minutes_from_now)
     task = Task.objects.create(
         title="Test Task",
         status=TaskStatus.TODO,
         due_date=timezone.now() + timezone.timedelta(minutes=60),
+        creator=user,
+        assignee=another_user,
     )
 
     serializer = TaskSerializer(
@@ -104,7 +106,7 @@ def test_due_date_validation(minutes_from_now, should_be_valid):
     ],
 )
 def test_reminder_time_validation_relative_to_due_date(
-    minutes_before_due, should_be_valid
+    user, another_user, minutes_before_due, should_be_valid
 ):
     due_date = timezone.now() + timezone.timedelta(minutes=40)
     reminder_at = due_date - timezone.timedelta(minutes=minutes_before_due)
@@ -113,6 +115,8 @@ def test_reminder_time_validation_relative_to_due_date(
         title="Test Task",
         status=TaskStatus.TODO,
         due_date=due_date,
+        creator=user,
+        assignee=another_user,
     )
 
     serializer = TaskSerializer(
@@ -126,21 +130,23 @@ def test_reminder_time_validation_relative_to_due_date(
     if should_be_valid:
         assert (
             is_valid
-        ), f"Reminder {minutes_before_due} min before due_date should be valid"
+        ), f"Reminder {minutes_before_due} minutes before due date should be valid"
     else:
         assert (
             not is_valid
-        ), f"Reminder {minutes_before_due} min before due_date should be invalid"
+        ), f"Reminder {minutes_before_due} minutes before due date should be invalid"
         assert "reminder_at" in serializer.errors
 
 
 @pytest.mark.django_db
-def test_due_date_is_required():
+def test_due_date_is_required(user, another_user):
     serializer = TaskSerializer(
         data={
             "title": "Task with no due date",
             "status": TaskStatus.TODO,
             "reminder_at": timezone.now() + timezone.timedelta(minutes=10),
+            "creator": user.id,
+            "assignee": another_user.id,
         }
     )
 

@@ -12,7 +12,21 @@ class EpicSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = "__all__"
+        fields = (
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "due_date",
+            "reminder_at",
+            "created_at",
+            "updated_at",
+            "creator",
+            "assignee",
+            "epic",
+        )
+        read_only_fields = ("creator", "created_at", "updated_at")
 
     def validate_status(self, new_status):
         instance = self.instance
