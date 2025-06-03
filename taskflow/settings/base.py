@@ -33,6 +33,7 @@ THIRD_PARTY_APPS = [
     "dj_rest_auth",
     "dj_rest_auth.registration",
     "rest_framework_simplejwt",
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
@@ -132,6 +133,7 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 CELERY_BROKER_URL = "redis://localhost:6379/0"
@@ -148,3 +150,9 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="webmaster@localhost")
 DEFAULT_TO_EMAIL = env("DEFAULT_TO_EMAIL", default=EMAIL_HOST_USER)
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Taskflow API",
+    "DESCRIPTION": "This is the API documentation for Taskflow project.",
+    "VERSION": "1.0.0",
+}
