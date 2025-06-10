@@ -83,12 +83,17 @@ WSGI_APPLICATION = "taskflow.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django_db_geventpool.backends.postgresql_psycopg2",
         "NAME": env("DATABASE_NAME"),
         "USER": env("DATABASE_USER"),
         "PASSWORD": env("DATABASE_PASSWORD"),
         "HOST": env("DATABASE_HOST"),
         "PORT": env("DATABASE_PORT"),
+        "CONN_MAX_AGE": 60,
+        "OPTIONS": {
+            "MAX_CONNS": 20,
+            "REUSE_CONNS": 10,
+        },
     }
 }
 
