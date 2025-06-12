@@ -9,7 +9,7 @@ class Epic(models.Model):
         editable=False,
         unique=True,
     )
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -38,7 +38,7 @@ class Task(models.Model):
         editable=False,
         unique=True,
     )
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
 
     status = models.CharField(
@@ -60,18 +60,18 @@ class Task(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="tasks",
+        related_name="%(class)ss",
     )
 
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="created_tasks",
+        related_name="created_%(class)ss",
     )
     assignee = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="assigned_tasks",
+        related_name="assigned_%(class)ss",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
