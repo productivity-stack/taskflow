@@ -191,3 +191,26 @@ python manage.py runserver
 ```
 
 You can see the application in a browser, at [http://localhost:8000](http://localhost:8000).
+
+
+### Redis
+
+run in backgroun:
+Docker run --name django-redis -d -p 6379:6379 -rm redis
+
+docker ps:
+you can see it is running
+
+Redis Python client :
+https://github.com/redis/redis-py
+
+From above site we install redis with hiredis support for better performance:
+$ pip install "redis[hiredis]"
+
+
+
+{
+  "email": "shr.farah.zad@gmail.com",
+  "username": "sahari2",
+  "password": "1234.qaz"
+}
